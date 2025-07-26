@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+
 import { Button } from "../ui/button";
 import RequestDialog from "./RequestModal";
 import { ethers } from "ethers";

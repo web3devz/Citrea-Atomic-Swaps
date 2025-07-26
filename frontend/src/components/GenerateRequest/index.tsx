@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Loader2, RefreshCw, Wallet, Lock, Bitcoin, Inbox } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { useEffect, useState, useCallback } from "react";
 // import { toast } from "../../hooks/use-toast";
@@ -39,157 +38,7 @@ export const chain = {
 };
 
 
-interface RequestCardProps {
-  request: Request;
-  onUnlock?: () => void;
-}
-
-const RequestCard = ({ request, onUnlock }: RequestCardProps) => {
-  return (
-    <Card className="bg-gray-50 hover:bg-gray-100 transition-colors">
-      <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-          <div>
-            <p className="font-medium  max-w-[300px]">{
-              
-              request.requestor.slice(0, 7) + "......" + request.requestor.slice(-7)
-              
-              }</p>
-              <div className="text-sm text-gray-600">
-              <p>{request.created.relative}</p>
-              <p className="text-xs">{request.created.full}</p>
-            </div>
-          </div>
-          <span className={`text-sm px-2 py-1 rounded ${request.status === 'pending'
-              ? 'bg-yellow-100 text-yellow-800'
-              : 'bg-green-100 text-green-800'
-            }`}>
-            {request.status}
-          </span>
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm flex items-center gap-2">
-            <span className="text-gray-600">Amount:</span>
-            <span className="font-medium">{request.amount} cBTC</span>
-          </p>
-        </div>
-        {request.status === 'pending' && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4 w-full hover:bg-primary hover:text-white transition-colors"
-            onClick={onUnlock}
-          >
-            Unlock cBTC
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-interface GenerateRequestFormProps {
-  amount: string;
-  btcAddress: string; 
-  isLoading: boolean;
-  onAmountChange: (value: string) => void;
-  onBtcAddressChange: (value: string) => void;
-  onSubmit: () => void;
-}
-
-
-
-const GenerateRequestForm = ({
-  amount,
-  btcAddress,
-  isLoading,
-  onAmountChange,
-  onBtcAddressChange,
-  onSubmit
-}: GenerateRequestFormProps) => {
-  const [address, setWalletAddress] = useAtom(walletAddressAtom);
-  const [, setWalletType] = useAtom(walletAddressAtom);
-
-  const connectMetaMask = async () => {
-    try {
-      if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-        setWalletType('metamask');
-        setWalletAddress(accounts[0]);
-      } else {
-        alert('MetaMask is not installed!');
-      }
-    } catch (error) {
-      console.error('Error connecting to MetaMask:', error);
-    }
-  };
-
-  return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl">Generate Swap Request</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">
-              Amount (cBTC)
-            </label>
-            <Input
-              type="number"
-              placeholder="0.0"
-              value={amount}
-              onChange={(e) => onAmountChange(e.target.value)}
-              disabled={isLoading}
-              step="0.00000001"
-              min="0"
-              className="focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">
-              Bitcoin Address
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter Bitcoin address"
-              value={btcAddress}
-              onChange={(e) => onBtcAddressChange(e.target.value)}
-              disabled={isLoading}
-              className="focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          {!address ? (
-            <Button
-              className="w-full"
-              onClick={connectMetaMask}
-            >
-              Connect Wallet
-            </Button>
-          ) : (
-            <Button
-              className="w-full transition-all transform hover:scale-[1.02]"
-              onClick={onSubmit}
-              disabled={isLoading || !btcAddress.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                'Lock cBTC'
-              )}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 export const CONTRACT_ADDRESS = "0x29f5054129deefae63add822f325d78da70a2b6f";
-
 
 
 const GenerateRequest = () => {
@@ -239,12 +88,6 @@ const GenerateRequest = () => {
       }
     }
   };
-
-  const LoadingState = () => (
-    <div className="flex items-center justify-center py-8">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
-  );
 
 
 

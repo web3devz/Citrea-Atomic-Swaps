@@ -3,7 +3,7 @@ import axios from "axios";
 
 
 const API_URL = "https://bitcoin-testnet4.gateway.tatum.io/";
-const API_KEY = "t-67540735f66f7bf84a21a6cf-70c26b1b7ca7467fa46b64c1";
+const API_KEY = "t-6885127d6692767ef96a3699-02b7fdb92ee0437594a972d4";
 
 // Instead of importing crypto, we'll use the global window.crypto
 function hexToBytes(hex: string): Uint8Array {

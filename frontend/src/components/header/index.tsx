@@ -77,6 +77,13 @@ const Header = () => {
             >
               View & Fulfill
             </Button>
+            <Button 
+              variant="ghost"
+              className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 font-medium"
+              onClick={() => navigate('/dashboard')}
+            >
+              Dashboard
+            </Button>
             {walletAddress ? (
               <WalletInfo
                 walletAddress={walletAddress}
@@ -132,6 +139,16 @@ const Header = () => {
                 }}
               >
                 View & Fulfill
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
+                onClick={() => {
+                  navigate('/dashboard');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Dashboard
               </Button>
               {walletAddress ? (
                 <Button

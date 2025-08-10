@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Loader2, RefreshCw, Wallet, Lock, Bitcoin, Inbox } from "lucide-react";
+import { Loader2, RefreshCw, Wallet, Lock, Bitcoin, Inbox, Bell, TrendingUp } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useEffect, useState, useCallback } from "react";
@@ -12,6 +12,7 @@ import { walletAddressAtom } from "../../atoms";
 
 import { toast } from 'react-toastify';
 import { formatDateTime } from "../../utils/time";
+import { notificationService } from "../../services/NotificationService";
 interface Request {
   requestor: string;
   amount: string;
@@ -190,6 +191,8 @@ const GenerateRequest = () => {
     
     setIsFetchingRequests(true);
     try {
+      console.log('🔍 Fetching user requests for:', address);
+      
       const provider = new ethers.JsonRpcProvider(chain.rpcUrls.default.http[0]);
       const contract = new ethers.Contract(
         CONTRACT_ADDRESS,
@@ -197,37 +200,107 @@ const GenerateRequest = () => {
         provider
       );
 
-      const allRequests: any = [];
-
-      for (let i = 0; i < 100; i++) { // Increased from 10 to 100 to catch more requests
-        try {
-          const result = await contract.getRequest(i);
-
-          console.log("result[0] === address", result[0]?.toLowerCase() == address?.toLowerCase(), result[0]?.toLowerCase(), address?.toLowerCase());
-
-          if (result.amount.toString() !== "0" && address && result[0]?.toLowerCase() == address.toLowerCase()) {
-            console.log("result", result);
-
-            allRequests.push({
-              requestor: result[0],
-              btcAddr:  result[1],
-              amount: ethers.formatEther(result[2]),
-              created: formatDateTime(Number(result[3])),
-              status: parseStatus(result[4])
-            });
+      // Try to get total requests first, with fallback
+      let totalRequestsCount = 0;
+      try {
+        const totalFromContract = await contract.getTotalRequests();
+        totalRequestsCount = Number(totalFromContract);
+        console.log(`✅ Total requests: ${totalRequestsCount}`);
+      } catch (error) {
+        console.warn('⚠️ getTotalRequests failed, using fallback:', error);
+        // Fallback: search manually up to 100 requests
+        for (let i = 1; i <= 100; i++) {
+          try {
+            const testResult = await contract.getRequest(i);
+            if (testResult.amount.toString() !== "0") {
+              totalRequestsCount = i;
+            }
+          } catch {
+            break;
           }
-        } catch (err) {
-          console.log(`No more requests after ${i}`);
-          break;
+        }
+        console.log(`📍 Found ${totalRequestsCount} requests via fallback`);
+      }
+
+      if (totalRequestsCount === 0) {
+        console.log('ℹ️ No requests found');
+        setRequests([]);
+        return;
+      }
+
+      const userRequests: any = [];
+      const batchSize = 5; // Smaller batch size for reliability
+      const maxToFetch = Math.min(30, totalRequestsCount);
+      const startIndex = Math.max(1, totalRequestsCount - maxToFetch + 1);
+      const endIndex = totalRequestsCount;
+
+      console.log(`📥 Searching for user requests in range ${startIndex}-${endIndex}`);
+
+      // Process requests in batches for better performance
+      for (let batch = startIndex; batch <= endIndex; batch += batchSize) {
+        const batchEnd = Math.min(batch + batchSize - 1, endIndex);
+        const batchPromises = [];
+        
+        for (let i = batch; i <= batchEnd; i++) {
+          batchPromises.push(
+            contract.getRequest(i)
+              .then((result: any) => ({ id: i, result, success: true }))
+              .catch((error: any) => {
+                console.warn(`❌ Failed to fetch request ${i}:`, error.message || error);
+                return { id: i, result: null, success: false };
+              })
+          );
+        }
+
+        try {
+          const batchResults = await Promise.all(batchPromises);
+          
+          batchResults.forEach(({ result, success }) => {
+            if (success && result && result.amount.toString() !== "0" && 
+                address && result[0]?.toLowerCase() === address.toLowerCase()) {
+              console.log("✅ Found user request:", result);
+
+              userRequests.push({
+                requestor: result[0],
+                btcAddr: result[1],
+                amount: ethers.formatEther(result[2]),
+                created: formatDateTime(Number(result[3])),
+                status: parseStatus(result[4])
+              });
+            }
+          });
+        } catch (batchError) {
+          console.error(`❌ Batch ${batch}-${batchEnd} failed:`, batchError);
+        }
+
+        // Small delay between batches
+        if (batch + batchSize <= endIndex) {
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
       }
 
-      console.log("All requests", allRequests);
-      setRequests(allRequests.reverse());
+      console.log(`✅ Found ${userRequests.length} user requests`);
+      setRequests(userRequests.reverse());
 
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-      toast.error("Failed to fetch requests");
+      if (userRequests.length === 0) {
+        console.log('ℹ️ No requests found for this user');
+      }
+
+    } catch (error: any) {
+      console.error("❌ Error fetching user requests:", error);
+      
+      // More specific error messages
+      if (error.code === 'NETWORK_ERROR') {
+        toast.error("🌐 Network error - please check your connection");
+      } else if (error.code === 'CALL_EXCEPTION') {
+        toast.error("📞 Contract call failed - contract may not be deployed");
+      } else if (error.message?.includes('timeout')) {
+        toast.error("⏰ Request timeout - please try again");
+      } else {
+        toast.error(`❌ Failed to fetch your requests: ${error.message || 'Unknown error'}`);
+      }
+      
+      setRequests([]);
     } finally {
       setIsFetchingRequests(false);
     }

@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Bitcoin, Shield, Zap, Users, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowRightLeft, Bitcoin, Shield, Zap, Users, ChevronRight, Sparkles, BarChart3 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -70,6 +70,19 @@ const Hero = () => {
                 <Users className="mr-3 h-6 w-6" />
                 Explore Requests
                 <ArrowRightLeft className="ml-2 h-5 w-5 transform group-hover:rotate-180 transition-transform duration-500" />
+              </span>
+            </Button>
+
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="group relative px-10 py-6 text-lg font-semibold border-2 border-green-400 text-green-700 hover:bg-green-50 hover:border-green-500 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 bg-white/80 backdrop-blur-sm"
+              onClick={() => navigate("/dashboard")}
+            >
+              <span className="relative flex items-center">
+                <BarChart3 className="mr-3 h-6 w-6" />
+                View Dashboard
+                <ChevronRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />
               </span>
             </Button>
           </div>

@@ -44,6 +44,8 @@ const FullFillRequests = () => {
     }
 
     try {
+      console.log('🔍 Fetching pending requests...');
+      
       const provider = new ethers.JsonRpcProvider(chain.rpcUrls.default.http[0]);
       const contract = new ethers.Contract(
         CONTRACT_ADDRESS,
@@ -51,48 +53,122 @@ const FullFillRequests = () => {
         provider
       );
 
+      // Try to get total requests first, with fallback
+      let totalRequestsCount = 0;
+      try {
+        const totalFromContract = await contract.getTotalRequests();
+        totalRequestsCount = Number(totalFromContract);
+        console.log(`✅ Total requests: ${totalRequestsCount}`);
+      } catch (error) {
+        console.warn('⚠️ getTotalRequests failed, using fallback:', error);
+        // Fallback: search manually
+        for (let i = 1; i <= 100; i++) {
+          try {
+            const testResult = await contract.getRequest(i);
+            if (testResult.amount.toString() !== "0") {
+              totalRequestsCount = i;
+            }
+          } catch {
+            break;
+          }
+        }
+        console.log(`📍 Found ${totalRequestsCount} requests via fallback`);
+      }
+
+      if (totalRequestsCount === 0) {
+        console.log('ℹ️ No requests found');
+        setRequests([]);
+        if (!isRefreshing) {
+          toast.info("No swap requests found at the moment");
+        }
+        return;
+      }
+
       const allRequests: any = [];
       let totalRequestsFound = 0;
+      const batchSize = 5; // Smaller batch size for reliability
+      const maxToFetch = Math.min(50, totalRequestsCount);
+      const startIndex = Math.max(1, totalRequestsCount - maxToFetch + 1);
+      const endIndex = totalRequestsCount;
 
-      // Increased from 10 to 100 to show more requests
-      for (let i = 0; i < 100; i++) {
+      console.log(`📥 Checking requests ${startIndex}-${endIndex} for pending status`);
+
+      // Process requests in batches for better performance
+      for (let batch = startIndex; batch <= endIndex; batch += batchSize) {
+        const batchEnd = Math.min(batch + batchSize - 1, endIndex);
+        const batchPromises = [];
+        
+        for (let i = batch; i <= batchEnd; i++) {
+          batchPromises.push(
+            contract.getRequest(i)
+              .then((result: any) => ({ id: i, result, success: true }))
+              .catch((error: any) => {
+                console.warn(`❌ Failed to fetch request ${i}:`, error.message || error);
+                return { id: i, result: null, success: false };
+              })
+          );
+        }
+
         try {
-          const result = await contract.getRequest(i);
-          if (result.amount.toString() !== "0") {
-            totalRequestsFound++;
-            const status = parseStatus(result[4]);
-            console.log(`Found request ${i}:`, result, `Status: ${status}`);
-            
-            // Only add pending requests (available to fulfill)
-            if (status === 'pending') {
-              allRequests.push({
-                request_id: i,
-                requestor: result[0],
-                btcAddr: result[1],
-                amount: ethers.formatEther(result[2]),
-                created: formatDateTime(Number(result[3])),
-                status: status
-              });
+          const batchResults = await Promise.all(batchPromises);
+          
+          batchResults.forEach(({ id, result, success }) => {
+            if (success && result && result.amount.toString() !== "0") {
+              totalRequestsFound++;
+              const status = parseStatus(result[4]);
+              console.log(`📋 Request ${id}: Status = ${status}`);
+              
+              // Only add pending requests (available to fulfill)
+              if (status === 'pending') {
+                allRequests.push({
+                  request_id: id,
+                  requestor: result[0],
+                  btcAddr: result[1],
+                  amount: ethers.formatEther(result[2]),
+                  created: formatDateTime(Number(result[3])),
+                  status: status
+                });
+              }
             }
-          }
-        } catch (err) {
-          console.log(`No more requests after ${i}`);
-          break;
+          });
+        } catch (batchError) {
+          console.error(`❌ Batch ${batch}-${batchEnd} failed:`, batchError);
+        }
+
+        // Small delay between batches
+        if (batch + batchSize <= endIndex) {
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
       }
 
-      console.log(`Found ${totalRequestsFound} total requests, ${allRequests.length} pending and available to fulfill`);
+      console.log(`✅ Found ${totalRequestsFound} total requests, ${allRequests.length} pending`);
       setRequests(allRequests.reverse()); // Show newest first
       
-      if (!isRefreshing && totalRequestsFound > 0) {
-        toast.success(`Found ${allRequests.length} pending requests out of ${totalRequestsFound} total`);
-      } else if (!isRefreshing && totalRequestsFound === 0) {
-        toast.info("No swap requests found at the moment");
+      if (!isRefreshing) {
+        if (allRequests.length > 0) {
+          toast.success(`✅ Found ${allRequests.length} pending requests out of ${totalRequestsFound} total`);
+        } else if (totalRequestsFound > 0) {
+          toast.info(`ℹ️ Found ${totalRequestsFound} total requests, but none are pending`);
+        } else {
+          toast.info("ℹ️ No swap requests found at the moment");
+        }
       }
       
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-      toast.error("Failed to fetch requests");
+    } catch (error: any) {
+      console.error("❌ Error fetching pending requests:", error);
+      
+      // More specific error messages
+      if (error.code === 'NETWORK_ERROR') {
+        toast.error("🌐 Network error - please check your connection");
+      } else if (error.code === 'CALL_EXCEPTION') {
+        toast.error("📞 Contract call failed - contract may not be deployed");
+      } else if (error.message?.includes('timeout')) {
+        toast.error("⏰ Request timeout - please try again");
+      } else {
+        toast.error(`❌ Failed to fetch requests: ${error.message || 'Unknown error'}`);
+      }
+      
+      setRequests([]);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

@@ -1,0 +1,208 @@
+{
+  "abi": [
+    {
+      "type": "constructor",
+      "inputs": [
+        {
+          "name": "_bitcoinLightClient",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "bitcoinLightClient",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "contract IBitcoinLightClient"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "generateRequest",
+      "inputs": [
+        { "name": "amount", "type": "uint256", "internalType": "uint256" },
+        { "name": "reciever", "type": "string", "internalType": "string" }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "getRequest",
+      "inputs": [
+        { "name": "_id", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [
+        {
+          "name": "req_",
+          "type": "tuple",
+          "internalType": "struct Request",
+          "components": [
+            { "name": "requestor", "type": "address", "internalType": "address" },
+            { "name": "reciever", "type": "string", "internalType": "string" },
+            { "name": "amount", "type": "uint256", "internalType": "uint256" },
+            { "name": "generationTimestamp", "type": "uint256", "internalType": "uint256" },
+            { "name": "status", "type": "uint8", "internalType": "enum Status" }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getTotalRequests",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getTotalVolume",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getTotalFulfilled",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "fullfill",
+      "inputs": [
+        { "name": "_requestId", "type": "uint256", "internalType": "uint256" },
+        { "name": "_blockNumber", "type": "uint256", "internalType": "uint256" },
+        { "name": "_wtxId", "type": "bytes32", "internalType": "bytes32" },
+        { "name": "_proof", "type": "bytes", "internalType": "bytes" },
+        { "name": "_index", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "revokeRequest",
+      "inputs": [
+        { "name": "_requestId", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "totalRequests",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "totalVolume",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "totalFulfilled",
+      "inputs": [],
+      "outputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "requests",
+      "inputs": [
+        { "name": "", "type": "uint256", "internalType": "uint256" }
+      ],
+      "outputs": [
+        { "name": "requestor", "type": "address", "internalType": "address" },
+        { "name": "reciever", "type": "string", "internalType": "string" },
+        { "name": "amount", "type": "uint256", "internalType": "uint256" },
+        { "name": "generationTimestamp", "type": "uint256", "internalType": "uint256" },
+        { "name": "status", "type": "uint8", "internalType": "enum Status" }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "event",
+      "name": "GenerateRequest",
+      "inputs": [
+        { "name": "requestId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+        { "name": "requestor", "type": "address", "indexed": true, "internalType": "address" },
+        { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+        { "name": "receiver", "type": "string", "indexed": false, "internalType": "string" },
+        { "name": "timestamp", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RequestFulfilled",
+      "inputs": [
+        { "name": "requestId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+        { "name": "fulfiller", "type": "address", "indexed": true, "internalType": "address" },
+        { "name": "isIncluded", "type": "bool", "indexed": false, "internalType": "bool" },
+        { "name": "timestamp", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "ReleaseFunds",
+      "inputs": [
+        { "name": "requestId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+        { "name": "user", "type": "address", "indexed": true, "internalType": "address" },
+        { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+        { "name": "timestamp", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RequestRevoked",
+      "inputs": [
+        { "name": "requestId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+        { "name": "requestor", "type": "address", "indexed": true, "internalType": "address" },
+        { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+        { "name": "timestamp", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "SwapCompleted",
+      "inputs": [
+        { "name": "requestId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+        { "name": "requestor", "type": "address", "indexed": true, "internalType": "address" },
+        { "name": "fulfiller", "type": "address", "indexed": true, "internalType": "address" },
+        { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+        { "name": "timestamp", "type": "uint256", "indexed": false, "internalType": "uint256" }
+      ],
+      "anonymous": false
+    }
+  ]
+}

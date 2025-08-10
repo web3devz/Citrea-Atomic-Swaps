@@ -25,6 +25,12 @@ interface IAtomicSwap {
         uint256 _id
     ) external view returns (Request memory req_);
 
+    function getTotalRequests() external view returns (uint256);
+
+    function getTotalVolume() external view returns (uint256);
+
+    function getTotalFulfilled() external view returns (uint256);
+
     function fullfill(
         uint256 _requestId,
         uint256 _blockNumber,
@@ -32,4 +38,6 @@ interface IAtomicSwap {
         bytes calldata _proof,
         uint256 _index
     ) external;
+
+    function revokeRequest(uint256 _requestId) external;
 }

@@ -99,13 +99,13 @@ export function measurePerformance(name: string) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      perfMonitor.start(`${target.constructor.name}.${propertyKey}`);
+      perfMonitor.start(name || `${target.constructor.name}.${propertyKey}`);
       try {
         const result = await originalMethod.apply(this, args);
-        perfMonitor.end(`${target.constructor.name}.${propertyKey}`);
+        perfMonitor.end(name || `${target.constructor.name}.${propertyKey}`);
         return result;
       } catch (error) {
-        perfMonitor.end(`${target.constructor.name}.${propertyKey}`);
+        perfMonitor.end(name || `${target.constructor.name}.${propertyKey}`);
         throw error;
       }
     };

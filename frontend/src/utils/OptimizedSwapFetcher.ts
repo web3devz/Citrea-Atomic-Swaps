@@ -56,9 +56,8 @@ export const swapCache = new SwapDataCache();
 // Optimized request fetcher with batching and caching
 export class OptimizedSwapFetcher {
   private contract: ethers.Contract | null = null;
-  private provider: ethers.JsonRpcProvider | null = null;
 
-  initialize(provider: ethers.JsonRpcProvider, contract: ethers.Contract) {
+  initialize(_provider: ethers.JsonRpcProvider, contract: ethers.Contract) {
     this.contract = contract;
   }
 
@@ -97,7 +96,7 @@ export class OptimizedSwapFetcher {
 
       const batchResults = await Promise.all(batchPromises);
       
-      batchResults.forEach((result, index) => {
+      batchResults.forEach((result: any, index: number) => {
         if (result && result.amount.toString() !== "0") {
           results.push({
             id: batch + index,

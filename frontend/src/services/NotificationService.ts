@@ -15,13 +15,12 @@ export interface SwapEvent {
 }
 
 class NotificationService {
-  private provider: ethers.JsonRpcProvider | null = null;
   private contract: ethers.Contract | null = null;
-  private listeners: Map<string, Function[]> = new Map();
+  private listeners: Map<string, ((event: SwapEvent) => void)[]> = new Map();
   private eventFilters: Map<string, any> = new Map();
   private isListening = false;
 
-  initialize(provider: ethers.JsonRpcProvider, contract: ethers.Contract) {
+  initialize(_provider: ethers.JsonRpcProvider, contract: ethers.Contract) {
   // this.provider = provider; // Removed unused variable
     this.contract = contract;
     this.setupEventFilters();
@@ -44,10 +43,11 @@ class NotificationService {
     this.isListening = true;
 
     // Listen for new swap requests
+    this.contract.on('GenerateRequest', (requestId: any, requestor: any, amount: any, timestamp: any, event: any) => {
       const swapEvent: SwapEvent = {
         type: 'request_generated',
         requestId: Number(requestId),
-    user: '', // Removed unused variable requestor
+        user: requestor,
         amount: ethers.formatEther(amount),
         timestamp: Number(timestamp),
         txHash: event.transactionHash,
@@ -91,11 +91,11 @@ class NotificationService {
     });
 
     // Listen for request revocations
-    this.contract.on('RequestRevoked', (requestId, requestor, amount, timestamp, event) => {
+    this.contract.on('RequestRevoked', (requestId: any, _requestor: any, amount: any, timestamp: any, event: any) => {
       const swapEvent: SwapEvent = {
         type: 'request_revoked',
         requestId: Number(requestId),
-    user: '', // Removed unused variable requestor
+        user: _requestor,
         amount: ethers.formatEther(amount),
         timestamp: Number(timestamp),
         txHash: event.transactionHash,
@@ -107,7 +107,7 @@ class NotificationService {
     });
 
     // Listen for completed swaps
-    this.contract.on('SwapCompleted', (requestId, requestor, fulfiller, amount, timestamp, event) => {
+    this.contract.on('SwapCompleted', (requestId: any, _requestor: any, fulfiller: any, amount: any, timestamp: any, event: any) => {
       const swapEvent: SwapEvent = {
         type: 'swap_completed',
         requestId: Number(requestId),

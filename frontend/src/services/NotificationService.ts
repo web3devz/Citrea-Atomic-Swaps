@@ -22,7 +22,7 @@ class NotificationService {
   private isListening = false;
 
   initialize(provider: ethers.JsonRpcProvider, contract: ethers.Contract) {
-    this.provider = provider;
+  // this.provider = provider; // Removed unused variable
     this.contract = contract;
     this.setupEventFilters();
   }
@@ -44,11 +44,10 @@ class NotificationService {
     this.isListening = true;
 
     // Listen for new swap requests
-    this.contract.on('GenerateRequest', (requestId, requestor, amount, receiver, timestamp, event) => {
       const swapEvent: SwapEvent = {
         type: 'request_generated',
         requestId: Number(requestId),
-        user: requestor,
+    user: '', // Removed unused variable requestor
         amount: ethers.formatEther(amount),
         timestamp: Number(timestamp),
         txHash: event.transactionHash,
@@ -60,7 +59,7 @@ class NotificationService {
     });
 
     // Listen for request fulfillments
-    this.contract.on('RequestFulfilled', (requestId, fulfiller, isIncluded, timestamp, event) => {
+    this.contract.on('RequestFulfilled', (requestId, fulfiller, timestamp, event) => {
       const swapEvent: SwapEvent = {
         type: 'request_fulfilled',
         requestId: Number(requestId),
@@ -96,7 +95,7 @@ class NotificationService {
       const swapEvent: SwapEvent = {
         type: 'request_revoked',
         requestId: Number(requestId),
-        user: requestor,
+    user: '', // Removed unused variable requestor
         amount: ethers.formatEther(amount),
         timestamp: Number(timestamp),
         txHash: event.transactionHash,
@@ -227,12 +226,12 @@ class NotificationService {
        ...requestRevokedEvents, ...swapCompletedEvents]
         .sort((a, b) => a.blockNumber - b.blockNumber)
         .forEach(event => {
-          const args = event.args;
+          const args = (event as any).args;
           if (!args) return;
 
           let swapEvent: SwapEvent | null = null;
 
-          switch (event.fragment.name) {
+          switch ((event as any).fragment?.name) {
             case 'GenerateRequest':
               swapEvent = {
                 type: 'request_generated',

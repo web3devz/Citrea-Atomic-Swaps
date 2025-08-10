@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Loader2, RefreshCw, Wallet, Lock, Bitcoin, Inbox, Bell, TrendingUp } from "lucide-react";
+import { Loader2, RefreshCw, Wallet, Lock, Bitcoin, Inbox } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useEffect, useState, useCallback } from "react";
@@ -12,7 +12,7 @@ import { walletAddressAtom } from "../../atoms";
 
 import { toast } from 'react-toastify';
 import { formatDateTime } from "../../utils/time";
-import { notificationService } from "../../services/NotificationService";
+// ...existing code...
 interface Request {
   requestor: string;
   amount: string;

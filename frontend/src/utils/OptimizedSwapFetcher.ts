@@ -59,7 +59,6 @@ export class OptimizedSwapFetcher {
   private provider: ethers.JsonRpcProvider | null = null;
 
   initialize(provider: ethers.JsonRpcProvider, contract: ethers.Contract) {
-    this.provider = provider;
     this.contract = contract;
   }
 

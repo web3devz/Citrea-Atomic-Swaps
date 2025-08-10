@@ -51,11 +51,11 @@ class PerformanceMonitor {
     return metric;
   }
 
-  measure(name: string, fn: () => Promise<any>) {
+  measure(name: string, fn: (...args: any[]) => Promise<any>) {
     return async (...args: any[]) => {
       this.start(name);
       try {
-        const result = await fn.apply(this, args);
+        const result = await fn.apply(this, args as any[]);
         this.end(name);
         return result;
       } catch (error) {
